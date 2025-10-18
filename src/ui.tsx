@@ -1,43 +1,17 @@
-import * as React from 'react'
-import * as ReactDom from 'react-dom'
-import { CssStyle } from './buildCssString'
-import { UnitType } from './buildSizeStringByUnit'
-import { messageTypes } from './messagesTypes'
-import styles from './ui.css'
-import Spacer from './ui/Spacer'
-import UserComponentSettingList from './ui/UserComponentSettingList'
-import { UserComponentSetting } from './userComponentSetting'
+import * as React from 'react';
+import * as ReactDom from 'react-dom';
+import { CssStyle } from './buildCssString';
+import { UnitType } from './buildSizeStringByUnit';
+import { messageTypes } from './messagesTypes';
+import styles from './ui.css';
+import './styling.css';
+import Spacer from './ui/Spacer';
+import UserComponentSettingList from './ui/UserComponentSettingList';
+import { UserComponentSetting } from './userComponentSetting';
+import CodeBlock from './CodeBlock';
+import { BuildCodes } from './buildCodes';
+import UIApp from './UIApp';
 
-function escapeHtml(str: string) {
-  str = str.replace(/&/g, '&amp;')
-  str = str.replace(/</g, '&lt;')
-  str = str.replace(/>/g, '&gt;')
-  str = str.replace(/"/g, '&quot;')
-  str = str.replace(/'/g, '&#39;')
-  return str
-}
-
-// I tried to use highlight.js https://highlightjs.readthedocs.io/en/latest/index.html
-// but didn't like the color. so I give it a go for this dirty style💪
-function insertSyntaxHighlightText(text: string) {
-  return text
-    .replaceAll('const', `const <span class="${styles.variableName}">`)
-    .replaceAll(': React.VFC', `</span>: React.VFC`)
-    .replaceAll('= styled.', `</span>= styled.`)
-    .replaceAll('React.VFC', `<span class="${styles.typeText}">React.VFC</span>`)
-    .replaceAll('return', `<span class="${styles.returnText}">return</span>`)
-    .replaceAll(': ', `<span class="${styles.expressionText}">: </span>`)
-    .replaceAll('= ()', `<span class="${styles.expressionText}">= ()</span>`)
-    .replaceAll('{', `<span class="${styles.expressionText}">{</span>`)
-    .replaceAll('}', `<span class="${styles.expressionText}">}</span>`)
-    .replaceAll('(', `<span class="${styles.expressionText}">(</span>`)
-    .replaceAll(')', `<span class="${styles.expressionText}">)</span>`)
-    .replaceAll('&lt;', `<span class="${styles.tagText}">&lt;</span><span class="${styles.tagNameText}">`)
-    .replaceAll('&gt;', `</span><span class="${styles.tagText}">&gt;</span>`)
-    .replaceAll('=</span><span class="tag-text">&gt;</span>', `<span class="${styles.defaultText}">=&gt;</span>`)
-    .replaceAll('.div', `<span class="${styles.functionText}">.div</span>`)
-    .replaceAll('`', `<span class="${styles.stringText}">${'`'}</span>`)
-}
 
 const cssStyles: { value: CssStyle; label: string }[] = [
   { value: 'css', label: 'CSS' },
@@ -51,11 +25,12 @@ const unitTypes: { value: UnitType; label: string }[] = [
 ]
 
 const App: React.VFC = () => {
-  const [code, setCode] = React.useState('')
+  // const [code, setCode] = React.useState('')
   const [selectedCssStyle, setCssStyle] = React.useState<CssStyle>('css')
   const [selectedUnitType, setUnitType] = React.useState<UnitType>('px')
   const [userComponentSettings, setUserComponentSettings] = React.useState<UserComponentSetting[]>([])
   const textRef = React.useRef<HTMLTextAreaElement>(null)
+  const [codes, setCodes] = React.useState<BuildCodes>([]);
 
   const copyToClipboard = () => {
     if (textRef.current) {
@@ -68,7 +43,7 @@ const App: React.VFC = () => {
   }
 
   const notifyChangeCssStyle = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const msg: messageTypes = { type: 'new-css-style-set', cssStyle: event.target.value as CssStyle }
+    const msg: messageTypes = { type: 'new-css-style-set', cssStyle: event.target.value as CssStyle, cssPrefix: '' }
     parent.postMessage({ pluginMessage: msg }, '*')
   }
 
@@ -96,15 +71,15 @@ const App: React.VFC = () => {
     notifyUpdateComponentSettings(userComponentSettings.filter((setting) => setting.name !== name))
   }
 
-  const syntaxHighlightedCode = React.useMemo(() => insertSyntaxHighlightText(escapeHtml(code)), [code])
+  // const syntaxHighlightedCode = React.useMemo(() => insertSyntaxHighlightText(escapeHtml(code)), [code])
 
   // set initial values taken from figma storage
   React.useEffect(() => {
     onmessage = (event) => {
-      setCssStyle(event.data.pluginMessage.cssStyle)
-      setUnitType(event.data.pluginMessage.unitType)
-      const codeStr = event.data.pluginMessage.generatedCodeStr + '\n\n' + event.data.pluginMessage.cssString
-      setCode(codeStr)
+      const { cssStyle, unitType, generatedCodeStr, cssString } = event.data.pluginMessage;
+      setCssStyle(cssStyle);setUnitType(unitType);
+      setCodes([{type: 'css', code: cssString}, {type: 'jsx', code: generatedCodeStr}]);
+      // setCode(`${generatedCodeStr}\n\n<style>\n${cssString}\n</style>`);
       setUserComponentSettings(event.data.pluginMessage.userComponentSettings)
     }
   }, [])
@@ -112,8 +87,10 @@ const App: React.VFC = () => {
   return (
     <div>
       <div className={styles.code}>
-        <textarea className={styles.textareaForClipboard} ref={textRef} value={code} readOnly />
-        <p className={styles.generatedCode} dangerouslySetInnerHTML={{ __html: syntaxHighlightedCode }} />
+        {/* <textarea className={styles.textareaForClipboard} ref={textRef} value={code} readOnly /> */}
+        {/* <p className={styles.generatedCode} dangerouslySetInnerHTML={{ __html: syntaxHighlightedCode }} /> */}
+        {codes.map((c, i) => <CodeBlock key={i} type={c.type} code={c.code} />)}
+        {/* <p className={styles.generatedCode} dangerouslySetInnerHTML={{ __html: syntaxHighlightedCode }} /> */}
 
         <Spacer axis="vertical" size={12} />
 
@@ -162,4 +139,4 @@ const App: React.VFC = () => {
   )
 }
 
-ReactDom.render(<App />, document.getElementById('app'))
+ReactDom.render(<UIApp />, document.getElementById('app'))

@@ -1,8 +1,9 @@
 import { CSSData } from './getCssDataForTag'
 import { Tag } from './buildTagTree'
 import { buildClassName } from './utils/cssUtils'
+import { CodeStyle } from './buildCode';
 
-export type CssStyle = 'css' | 'styled-components'
+export type CssStyle = 'css' | 'styled-components' | 'tailwindcss' | 'daisyui';
 
 function buildArray(tag: Tag, arr: CSSData[]): CSSData[] {
   if (!tag.isComponent) {
@@ -16,7 +17,7 @@ function buildArray(tag: Tag, arr: CSSData[]): CSSData[] {
   return arr
 }
 
-export function buildCssString(tag: Tag, cssStyle: CssStyle): string {
+export function buildCssString(tag: Tag, codeType: CodeStyle, cssStyle: CssStyle): string {
   const cssArray = buildArray(tag, [])
   let codeStr = ''
 

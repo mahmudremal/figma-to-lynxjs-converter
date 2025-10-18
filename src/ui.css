@@ -45,7 +45,7 @@ input {
 }
 
 /* position this far outside of the window since it's used only for copy to clipboard functionality */
-.textareaForClipboard {
+/* .textareaForClipboard {
   opacity: 0;
   position: absolute;
   top: -9999px;
@@ -108,4 +108,7 @@ input {
 }
 .stringText {
   color: #cb9178;
-}
+} */
+
+
+

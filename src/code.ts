@@ -2,7 +2,7 @@ import { STORAGE_KEYS } from './storageKeys'
 import { messageTypes } from './messagesTypes'
 import { UnitType } from './buildSizeStringByUnit'
 import { modifyTreeForComponent } from './modifyTreeForComponent'
-import { buildCode } from './buildCode'
+import { buildCode, CodeStyle } from './buildCode'
 import { buildTagTree } from './buildTagTree'
 import { buildCssString, CssStyle } from './buildCssString'
 import { UserComponentSetting } from './userComponentSetting'
@@ -12,7 +12,7 @@ figma.showUI(__html__, { width: 480, height: 480 })
 
 const selectedNodes = figma.currentPage.selection
 
-async function generate(node: SceneNode, config: { cssStyle?: CssStyle; unitType?: UnitType }) {
+async function generate(node: SceneNode, config: { cssStyle?: CssStyle; unitType?: UnitType, codeType?: CodeStyle }) {
   let cssStyle = config.cssStyle
   if (!cssStyle) {
     cssStyle = await figma.clientStorage.getAsync(STORAGE_KEYS.CSS_STYLE_KEY)
@@ -30,6 +30,15 @@ async function generate(node: SceneNode, config: { cssStyle?: CssStyle; unitType
       unitType = 'px'
     }
   }
+  let codeType = config.codeType
+  if (!codeType) {
+    codeType = await figma.clientStorage.getAsync(STORAGE_KEYS.CODE_FRAMEWORK_KEY)
+
+    if (!codeType) {
+      codeType = 'jsx'
+    }
+  }
+  
 
   const userComponentSettings: UserComponentSetting[] = (await figma.clientStorage.getAsync(STORAGE_KEYS.USER_COMPONENT_SETTINGS_KEY)) || []
 
@@ -42,8 +51,9 @@ async function generate(node: SceneNode, config: { cssStyle?: CssStyle; unitType
   }
 
   const tag = await modifyTreeForComponent(originalTagTree, figma)
-  const generatedCodeStr = buildCode(tag, cssStyle)
-  const cssString = buildCssString(tag, cssStyle)
+
+  const generatedCodeStr = buildCode(tag, codeType as CodeStyle, cssStyle)
+  const cssString = buildCssString(tag, codeType as CodeStyle, cssStyle)
 
   figma.ui.postMessage({ generatedCodeStr, cssString, cssStyle, unitType, userComponentSettings })
 }

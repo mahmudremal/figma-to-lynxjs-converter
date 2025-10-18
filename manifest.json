@@ -1,6 +1,6 @@
 {
-  "name": "Figma to React Component",
-  "id": "959795830541939498",
+  "name": "Figma to LynxJS Agent",
+  "id": "959795830541939498123",
   "api": "1.0.0",
   "main": "dist/code.js",
   "ui": "dist/ui.html",

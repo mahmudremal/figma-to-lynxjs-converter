@@ -2,7 +2,8 @@ import { capitalizeFirstLetter } from './utils/stringUtils'
 import { Tag } from './buildTagTree'
 import { buildClassName } from './utils/cssUtils'
 
-type CssStyle = 'css' | 'styled-components'
+type CssStyle = 'css' | 'styled-components' | 'tailwindcss' | 'daisyui';
+export type CodeStyle = 'jsx' | 'tsx' | 'lynxjs' | 'json';
 
 function buildSpaces(baseSpaces: number, level: number) {
   let spacesStr = ''
@@ -86,7 +87,7 @@ function buildJsxString(tag: Tag, cssStyle: CssStyle, level: number) {
   return openingTag + childTags + closingTag
 }
 
-export function buildCode(tag: Tag, css: CssStyle): string {
+export function buildCode(tag: Tag, codeType: CodeStyle, css: CssStyle): string {
   return `const ${capitalizeFirstLetter(tag.name.replace(/\s/g, ''))}: React.VFC = () => {
   return (
 ${buildJsxString(tag, css, 0)}
